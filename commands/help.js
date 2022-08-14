@@ -1,12 +1,13 @@
 const { SlashCommandBuilder, EmbedBuilder, bold, underscore, strikethrough } = require('discord.js');
 
 const commandList = {
-	ping: bold("-ping:") + " " + "pong" + "\n",
-	help: bold("-help:") + " " + "lista de comandos do bot" + "\n",
+	ping: bold("/ping:") + " " + "pong" + "\n",
+	help: bold("/help:") + " " + "lista de comandos do bot" + "\n",
+	youtube: bold("/youtube:") + " " + "pesquise algum vídeo no youtube" + "\n",
 };
 
 let commands = '';
-for (const [key, value] of Object.entries(commandList)) {
+for (const [index, value] of Object.entries(commandList)) {
 	commands += value;
 }
 

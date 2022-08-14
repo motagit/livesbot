@@ -3,7 +3,7 @@ const Discord = require("discord.js");
 const Enmap = require("enmap");
 const fs = require("fs");
 const chalk = require('chalk');
-const config = require('./cfg/config.json')
+const config = require('./config/config.json')
 
 const commandsPath = path.join(__dirname, 'commands');
 const eventsPath = path.join(__dirname, 'events');
