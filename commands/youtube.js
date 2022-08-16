@@ -1,13 +1,18 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { google } = require("googleapis");
 const config = require('../config/config.json')
 const apiKey = config.youtubeApiToken;
+
+// var fullUrl = `https://www.youtube.com/watch?v=${video.id.videoId}`;
 
 const youtube = google.youtube({
 version: "v3",
 auth: apiKey,
 });
 let stringBuilder = '';
+let interactionReply = {};
+let selectVideoEmbed;
+let buttons;
 
 const searchYoutubeVideo = async(youtubeSearch) => {
     try {
@@ -17,10 +22,9 @@ const searchYoutubeVideo = async(youtubeSearch) => {
             type:'video'
         });
         const videos = response.data.items.map((video) => video);
-        console.log(videos);
-        // if (videos != null) stringBuilder = '';
         return videos;
     } catch (err) {
+        interactionReply.content = 'Ocorreu um erro ao processar sua pesquisa. Tente novamente mais tarde.';
         console.log(err);
     }
 }
@@ -32,19 +36,54 @@ module.exports = {
         .addStringOption(option => option.setName('input').setDescription('Insira o texto para procura no youtube').setRequired(true)),
 	async execute(interaction) {
         const searchInput = interaction.options.getString('input');
-        const searchResult = await searchYoutubeVideo(searchInput);
-
-        if (searchResult != null) {
-            for (const [index, video] of searchResult.entries()) {
-                let count = index + 1;
-                var fullUrl = `https://www.youtube.com/watch?v=${video.id.videoId}`;
-                let fullElement = count + " - **" + video.snippet.title + '** - ' + fullUrl +  "\n";
-                stringBuilder = stringBuilder + fullElement;
-            }
+        let searchResult;
+        try {
+            searchResult = await searchYoutubeVideo(searchInput);
+        } catch (error) {
+            interactionReply.content = 'Ocorreu um erro ao processar sua pesquisa. Tente novamente mais tarde.';
         }
 
-        console.log(stringBuilder);
-        
-		await interaction.reply(searchResult.length == 0 ? 'Não consegui achar nada :face_with_raised_eyebrow:, tente novamente!' : stringBuilder);
+        if (searchResult != null && Object.keys(searchResult).length !== 0) {
+            buttons = new ActionRowBuilder();
+
+            for (const [index, video] of searchResult.entries()) {
+                let label = index + 1;
+                buttons.addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(video.id.videoId)
+                        .setStyle(ButtonStyle.Primary)
+                        .setEmoji(label + '\uFE0F\u20E3')
+                    
+                );
+            }
+
+            for (const [index, video] of searchResult.entries()) {
+                let count = index + 1;
+                let fullElement = count + " - **" + video.snippet.title + '**' +  "\n";
+                stringBuilder = stringBuilder + fullElement;
+            }
+
+            selectVideoEmbed = {
+                color: 0xf2f2f2,
+                title: 'Selecione um Video',
+                fields: [
+                    { name: 'Titulos', value: stringBuilder},
+                ],
+                data: [
+                    'teste'
+                ],
+            };
+
+            if (buttons.components.lenght != 0) interactionReply.components = [buttons];
+            interactionReply.embeds = [selectVideoEmbed];
+        } else if (searchResult == null || Object.keys(searchResult).length === 0) {
+            interactionReply.content = 'Não consegui achar nada :face_with_raised_eyebrow:, tente novamente!';
+            delete interactionReply.embeds;
+            delete interactionReply.components;
+        }
+
+        interactionReply.ephemeral = true;
+
+		await interaction.reply(interactionReply);
 	},
 };
