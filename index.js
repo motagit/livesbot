@@ -8,6 +8,7 @@ const config = require('./config/config.json')
 const commandsPath = path.join(__dirname, 'commands');
 const eventsPath = path.join(__dirname, 'events');
 const client = new Discord.Client({ intents: [Discord.GatewayIntentBits.Guilds] });
+module.exports = client;
 
 client.commands = new Enmap();
 client.config = config;
@@ -49,19 +50,6 @@ fs.readdir("./commands/", (err, files) => {
     .catch(console.error);
 });
 
-// listen deployed commands via interaction
-client.on('interactionCreate', async interaction => {
-	if (!interaction.isChatInputCommand()) return;
-	const command = client.commands.get(interaction.commandName);
-	if (!command) return;
-
-	try {
-		await command.execute(interaction);
-	} catch (error) {
-		console.error(error);
-		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-	}
-});
-
 
 client.login(config.token)
+

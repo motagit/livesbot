@@ -3,13 +3,10 @@ const { google } = require("googleapis");
 const config = require('../config/config.json')
 const apiKey = config.youtubeApiToken;
 
-// var fullUrl = `https://www.youtube.com/watch?v=${video.id.videoId}`;
-
 const youtube = google.youtube({
 version: "v3",
 auth: apiKey,
 });
-let stringBuilder = '';
 let interactionReply = {};
 let selectVideoEmbed;
 let buttons;
@@ -37,6 +34,7 @@ module.exports = {
 	async execute(interaction) {
         const searchInput = interaction.options.getString('input');
         let searchResult;
+        let stringBuilder = '';
         try {
             searchResult = await searchYoutubeVideo(searchInput);
         } catch (error) {
@@ -58,6 +56,7 @@ module.exports = {
             }
 
             for (const [index, video] of searchResult.entries()) {
+                
                 let count = index + 1;
                 let fullElement = count + " - **" + video.snippet.title + '**' +  "\n";
                 stringBuilder = stringBuilder + fullElement;
@@ -81,8 +80,6 @@ module.exports = {
             delete interactionReply.embeds;
             delete interactionReply.components;
         }
-
-        interactionReply.ephemeral = true;
 
 		await interaction.reply(interactionReply);
 	},
